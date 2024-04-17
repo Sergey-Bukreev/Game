@@ -1,20 +1,31 @@
 const {Game} = require("./Game")
 
+
 describe ("game test", ()=> {
+   let game
+    beforeEach(()=> {
+
+     game = new Game()
+    })
+    afterEach(async ()=>{
+        await game.stop()
+    })
+
     test("init test", ()=> {
-        const game = new Game()
+
         game.settings = {
             gridSize:{
                 width:4,
                 height:5
             }
         }
+
         expect(game.settings.gridSize.width).toBe(4)
         expect(game.settings.gridSize.height).toBe(5)
 
     })
     test ("star game", ()=> {
-        const game = new Game()
+
         game.settings = {
             gridSize:{
                 width:4,
@@ -27,7 +38,7 @@ describe ("game test", ()=> {
         expect(game.gameStatus).toBe("in-process")
     })
     test ("player1 and player2 should be have unique position", ()=> {
-        const game = new Game()
+
         game.settings = {
             gridSize:{
                 width:1,
@@ -39,6 +50,7 @@ describe ("game test", ()=> {
         console.log("GAME", game.player1)
         console.log("GAME", game.player2)
         console.log("GAME", game.google)
+
         expect([1]).toContain(game.player1.position.x)
         expect([1, 2, 3]).toContain(game.player1.position.y)
 
@@ -59,4 +71,73 @@ describe ("game test", ()=> {
         )
     })
 
+    test("Check Google position after change", async () => {
+
+        game.settings = {
+            gridSize:{
+                width:4,
+                height:4
+            },
+            googleJumpInterval: 100
+        }
+        await game.start()
+        const prevPosition = game.google.position.clone()
+
+        await sleep(150)
+
+        console.log(game.google.position)
+        // Проверкаа что позиции изменились
+        expect(game.google.position).not.toEqual(prevPosition)
+        // Проверка нашего метода equal
+        expect(game.google.position.equal(prevPosition)).toBe(false)
+
+
+    })
+
+    test("catch Google by player1 or player2 for one row", async () => {
+        game.settings = {
+            gridSize:{
+                width: 4,
+                height: 4
+            },
+        };
+        await game.start();
+
+        const prevPosition = game.google.position.clone();
+        const deltaForPlayer1 = game.google.position.x - game.player1.position.x;
+        const deltaForPlayer2 = game.google.position.x - game.player2.position.x;
+
+        if (Math.abs(deltaForPlayer1) <= 1 && Math.abs(deltaForPlayer2) <= 1) {
+            // Если Google на одной линии с обоими игроками
+            if (Math.abs(deltaForPlayer1) < Math.abs(deltaForPlayer2)) {
+                // Если игрок 1 ближе к Google, чем игрок 2
+                if (deltaForPlayer1 > 0) game.movePlayer1Right();
+                else game.movePlayer1Left();
+            } else if (Math.abs(deltaForPlayer1) > Math.abs(deltaForPlayer2)) {
+                // Если игрок 2 ближе к Google, чем игрок 1
+                if (deltaForPlayer2 > 0) game.movePlayer2Right();
+                else game.movePlayer2Left();
+            } else {
+                // Если оба игрока находятся на одинаковом расстоянии от Google по оси X
+                // Мы можем выбрать любого игрока для перемещения
+                if (deltaForPlayer1 > 0) game.movePlayer1Right();
+                else game.movePlayer1Left();
+            }
+        } else {
+            // Если Google не находится на одной линии с обоими игроками
+            // Тут не должен поймать Google ни один из игроков
+            expect(game.score[1].points).toBe(0);
+            expect(game.score[2].points).toBe(0);
+        }
+
+        // Проверяем, что позиция Google изменилась после попытки поймать его
+        expect(game.google.position.equal(prevPosition)).toBe(false);
+    });
+
+
 })
+function sleep (delay) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, delay)
+    })
+}
