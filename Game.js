@@ -1,4 +1,4 @@
-class Game {
+ export class Game {
     #settings = {
         gridSize:{
             width:4,
@@ -17,7 +17,22 @@ class Game {
         2: {points : 0}
     }
 
-
+constructor(eventEmitter) {
+        this.eventEmitter = eventEmitter
+}
+     #moveGoogleToRandomPosition(excludeGoogle) {
+         let notCrossedPosition = [this.player1.position, this.player2.position];
+         if (!excludeGoogle) {
+             notCrossedPosition.push(this.#google.position);
+         }
+         const newPosition = Position.getNotCrossedPosition(
+             notCrossedPosition,
+             this.#settings.gridSize.width,
+             this.#settings.gridSize.height
+         );
+         this.eventEmitter.emit("unitChangePosition")
+         return new Position(newPosition);
+     }
     #createUnits() {
         const player1Position = new Position(
             Position.getNotCrossedPosition(
@@ -37,45 +52,41 @@ class Game {
 
         this.#player1 = new Player(player1Position, 1)
 
-
         this.#player2 = new Player(player2Position, 2)
-        //
-        // const googlePosition = new Position(
-        //     Position.getNotCrossedPosition(
-        //         [player1Position, player2Position],
-        //         this.#settings.gridSize.width,
-        //         this.#settings.gridSize.height
-        //     )
-        // )
+
         const googlePosition = this.#moveGoogleToRandomPosition(true)
 
         this.#google = new Google(googlePosition)
     }
     #checkBorder (player, delta) {
-        if ( delta.x) {
-            return player.position.x + delta.x >this.#settings.gridSize.width || player.position.x + delta.x < 1
+       const newPosition = player.position.clone()
+        if(delta.x) newPosition.x += delta.x
+        if(delta.y) newPosition.y += delta.y
+
+        if(newPosition.x < 1 || newPosition.x > this.#settings.gridSize.width) {
+            return true
         }
-        if(delta.y) {
-            return player.position.y + delta.y >this.#settings.gridSize.height || player.position.y + delta.y < 1
+        if(newPosition.y < 1 || newPosition.y > this.#settings.gridSize.height) {
+            return true
         }
-        return false
+            return  false
     }
     #checkOtherPlayer (movingPlayer, otherPlayer, delta) {
-        if(delta.x) {
-            return movingPlayer.position.x + delta.x === otherPlayer.position.x
-        }
-        if(delta.y) {
-            return movingPlayer.position.y + delta.y === otherPlayer.position.y
-        }
-        return false
+       const newPosition = movingPlayer.position.clone()
+        if(delta.x) newPosition.x += delta.x
+        if(delta.y) newPosition.y += delta.y
+
+        return otherPlayer.position.equal(newPosition)
     }
     #checkGoogleCatching (player) {
         if(this.google.position.equal(player.position)) {
             this.#score[player.playerId].points++
             if(this.score[player.playerId] === this.#settings.pointsToWin) {
                 this.#finish()
-               // Посмотреть в конце игры что булет с Гуглом и убрать его с поля
-                // this.google.position = {}
+                this.google.position = new Position(
+                    this.#settings.gridSize.width + 1,
+                        this.#settings.gridSize.height + 1
+                )
 
             } else {
                 this.#moveGoogleToRandomPosition()
@@ -97,6 +108,7 @@ class Game {
 
 
         this.#checkGoogleCatching(movingPlayer)
+        this.eventEmitter.emit("unitChangePosition")
     }
     movePlayer1Right () {
        const  delta = {x:1}
@@ -166,6 +178,7 @@ class Game {
            this.#gameStatus = "in-process"
        }
        this.#RunGoogleJumpInterval()
+
     }
     async stop () {
         clearInterval(this.#googleSetIntervalId)
@@ -175,24 +188,13 @@ class Game {
         clearInterval(this.#googleSetIntervalId)
         this.#gameStatus = "finished"
     }
-    #RunGoogleJumpInterval () {
+    #RunGoogleJumpInterval  () {
+
        this.#googleSetIntervalId = setInterval(() => {
             this.#moveGoogleToRandomPosition()
         }, this.#settings.googleJumpInterval)
+        console.log("google jump interval")
     }
-    #moveGoogleToRandomPosition(excludeGoogle) {
-        let notCrossedPosition = [this.player1.position, this.player2.position];
-        if (!excludeGoogle) {
-            notCrossedPosition.push(this.#google.position);
-        }
-        const newPosition = Position.getNotCrossedPosition(
-            notCrossedPosition,
-            this.#settings.gridSize.width,
-            this.#settings.gridSize.height
-        );
-        return new Position(newPosition);
-    }
-
 }
 
 
@@ -238,7 +240,7 @@ class NumberUtil {
 
     }
 }
-module.exports = {
-    Game,
-    Player
-}
+// module.exports = {
+//     Game,
+//     Player
+// }

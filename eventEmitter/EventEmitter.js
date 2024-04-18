@@ -19,8 +19,8 @@ export class EventEmitter {
             this.#subscribers[eventName] = this.#subscribers[eventName].filter(cb => callback !== cb)
         }
     }
-    emit (eventName) {
-        this.#subscribers[eventName].forEach(callback => callback())
+    emit (eventName, data= null) {
+        this.#subscribers[eventName]?.forEach(callback => callback(data))
     }
     // Реализация отдетного метода для отписки
     off (eventName, callback) {
