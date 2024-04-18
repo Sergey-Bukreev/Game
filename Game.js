@@ -4,7 +4,8 @@ class Game {
             width:4,
             height:4
         },
-        googleJumpInterval: 2000
+        googleJumpInterval: 2000,
+        pointsToWin:10
     }
     #gameStatus = "pending"
     #player1
@@ -16,7 +17,7 @@ class Game {
         2: {points : 0}
     }
 
-    constructor() {}
+
     #createUnits() {
         const player1Position = new Position(
             Position.getNotCrossedPosition(
@@ -71,7 +72,14 @@ class Game {
     #checkGoogleCatching (player) {
         if(this.google.position.equal(player.position)) {
             this.#score[player.playerId].points++
-            this.#moveGoogleToRandomPosition()
+            if(this.score[player.playerId] === this.#settings.pointsToWin) {
+                this.#finish()
+               // Посмотреть в конце игры что булет с Гуглом и убрать его с поля
+                // this.google.position = {}
+
+            } else {
+                this.#moveGoogleToRandomPosition()
+            }
         }
     }
     #movePlayer (movingPlayer, otherPlayer, delta) {
@@ -129,7 +137,10 @@ class Game {
 
 
     set settings(newSettings) {
-       this.#settings = newSettings
+       this.#settings = {...this.#settings, newSettings}
+        this.#settings.gridSize = newSettings.gridSize
+            ? {...this.#settings.gridSize, ...newSettings.gridSize}
+            : this.#settings.gridSize
     }
     get settings () {
        return this.#settings
@@ -157,6 +168,10 @@ class Game {
        this.#RunGoogleJumpInterval()
     }
     async stop () {
+        clearInterval(this.#googleSetIntervalId)
+        this.#gameStatus = "stoped"
+    }
+    async #finish () {
         clearInterval(this.#googleSetIntervalId)
         this.#gameStatus = "finished"
     }

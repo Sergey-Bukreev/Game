@@ -98,8 +98,9 @@ describe ("game test", ()=> {
         game.settings = {
             gridSize:{
                 width: 4,
-                height: 4
+                height:4
             },
+            pointsToWin: 3
         };
         await game.start();
 
@@ -134,10 +135,66 @@ describe ("game test", ()=> {
         expect(game.google.position.equal(prevPosition)).toBe(false);
     });
 
+    test("check player1 or player2 won", async () => {
+        game.settings = {
+            gridSize:{
+                width: 3,
+                height: 1
+            },
+        };
+        await game.start();
+
+        const prevPosition = game.google.position.clone();
+        const deltaForPlayer1 = game.google.position.x - game.player1.position.x;
+        const deltaForPlayer2 = game.google.position.x - game.player2.position.x;
+
+        if (Math.abs(deltaForPlayer1) <= 1 && Math.abs(deltaForPlayer2) <= 1) {
+            // Если Google на одной линии с обоими игроками
+            if (Math.abs(deltaForPlayer1) < Math.abs(deltaForPlayer2)) {
+                await movePlayerTowardsGoogle(game, deltaForPlayer1, game.movePlayer1Left.bind(game), game.movePlayer1Right.bind(game));
+                // Проверяем что первый игрок победил и игра закончилась
+                expect(game.score[1].points).toBe(3);
+                expect(game.score[2].points).toBe(0);
+                expect(game.gameStatus).toBe("finished");
+            } else if (Math.abs(deltaForPlayer1) > Math.abs(deltaForPlayer2)) {
+                await movePlayerTowardsGoogle(game, deltaForPlayer2, game.movePlayer2Left.bind(game), game.movePlayer2Right.bind(game));
+                // Проверяем что второй игрок победил и игра закончилась
+                expect(game.score[1].points).toBe(0);
+                expect(game.score[2].points).toBe(3);
+                expect(game.gameStatus).toBe("finished");
+            } else {
+                // Если оба игрока находятся на одинаковом расстоянии от Google по оси X
+                // Мы можем выбрать любого игрока для перемещения
+                await movePlayerTowardsGoogle(game, deltaForPlayer1, game.movePlayer1Left.bind(game), game.movePlayer1Right.bind(game));
+            }
+        } else {
+            // Если Google не находится на одной линии с обоими игроками
+            // Тут не должен поймать Google ни один из игроков
+            expect(game.score[1].points).toBe(0);
+            expect(game.score[2].points).toBe(0);
+        }
+
+        // Проверяем, что позиция Google изменилась после попытки поймать его
+        expect(game.google.position.equal(prevPosition)).toBe(false);
+    });
+
+
 
 })
 function sleep (delay) {
     return new Promise((resolve) => {
         setTimeout(resolve, delay)
     })
+}
+
+async function movePlayerTowardsGoogle(game, delta, moveLeft, moveRight) {
+    if (delta > 0) {
+        await moveRight();
+        await moveLeft();
+        await moveRight();
+    } else {
+        await moveLeft();
+        await moveRight();
+        await moveLeft();
+    }
 }
