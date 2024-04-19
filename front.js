@@ -31,6 +31,7 @@ const asyncStart = async () => {
                     const googleElement = document.createElement("img")
                     googleElement.src = "./assets/google.png"
                     tdElement.appendChild(googleElement)
+
                 }
 
                 if(game.player1.position.x === x && game.player1.position.y=== y) {

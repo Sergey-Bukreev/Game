@@ -1,11 +1,11 @@
- export class Game {
+    export class Game {
     #settings = {
         gridSize:{
             width:4,
             height:4
         },
         googleJumpInterval: 2000,
-        pointsToWin:10
+        pointsToWin:3
     }
     #gameStatus = "pending"
     #player1
@@ -31,6 +31,7 @@ constructor(eventEmitter) {
              this.#settings.gridSize.height
          );
          this.eventEmitter.emit("unitChangePosition")
+
          return new Position(newPosition);
      }
     #createUnits() {
@@ -58,19 +59,22 @@ constructor(eventEmitter) {
 
         this.#google = new Google(googlePosition)
     }
-    #checkBorder (player, delta) {
-       const newPosition = player.position.clone()
-        if(delta.x) newPosition.x += delta.x
-        if(delta.y) newPosition.y += delta.y
-
-        if(newPosition.x < 1 || newPosition.x > this.#settings.gridSize.width) {
-            return true
-        }
-        if(newPosition.y < 1 || newPosition.y > this.#settings.gridSize.height) {
-            return true
-        }
-            return  false
-    }
+     #checkBorder(player, delta) {
+         const newPosition = player.position.clone();
+         if (delta.x) {
+             newPosition.x += delta.x;
+             if (newPosition.x < 1 || newPosition.x > this.#settings.gridSize.width) {
+                 return true; // Если игрок выходит за пределы по ширине
+             }
+         }
+         if (delta.y) {
+             newPosition.y += delta.y;
+             if (newPosition.y < 1 || newPosition.y > this.#settings.gridSize.height) {
+                 return true; // Если игрок выходит за пределы по высоте
+             }
+         }
+         return false;
+     }
     #checkOtherPlayer (movingPlayer, otherPlayer, delta) {
        const newPosition = movingPlayer.position.clone()
         if(delta.x) newPosition.x += delta.x
@@ -78,21 +82,26 @@ constructor(eventEmitter) {
 
         return otherPlayer.position.equal(newPosition)
     }
-    #checkGoogleCatching (player) {
-        if(this.google.position.equal(player.position)) {
-            this.#score[player.playerId].points++
-            if(this.score[player.playerId] === this.#settings.pointsToWin) {
-                this.#finish()
-                this.google.position = new Position(
-                    this.#settings.gridSize.width + 1,
-                        this.#settings.gridSize.height + 1
-                )
 
-            } else {
-                this.#moveGoogleToRandomPosition()
-            }
-        }
-    }
+     #checkGoogleCatching(player) {
+         if(this.google.position.equal(player.position)) {
+             this.#score[player.playerId].points++;
+             if(this.score[player.playerId].points === this.#settings.pointsToWin) {
+                 this.#finish();
+                 this.#google.position = new Position({
+                     x: this.#settings.gridSize.width + 1,
+                     y: this.#settings.gridSize.height + 1
+                 });
+             } else {
+                 let newPosition;
+                 do {
+                     newPosition = this.#moveGoogleToRandomPosition();
+                 } while (newPosition.equal(this.#player1.position) || newPosition.equal(this.#player2.position));
+                 this.#google.position = newPosition;
+             }
+         }
+     }
+
     #movePlayer (movingPlayer, otherPlayer, delta) {
 
         const isBorder = this.#checkBorder(movingPlayer, delta)
@@ -110,7 +119,9 @@ constructor(eventEmitter) {
         this.#checkGoogleCatching(movingPlayer)
         this.eventEmitter.emit("unitChangePosition")
     }
-    movePlayer1Right () {
+
+
+     movePlayer1Right () {
        const  delta = {x:1}
         this.#movePlayer(this.#player1, this.#player2, delta)
         this.#checkGoogleCatching(this.#player1)
@@ -188,14 +199,16 @@ constructor(eventEmitter) {
         clearInterval(this.#googleSetIntervalId)
         this.#gameStatus = "finished"
     }
-    #RunGoogleJumpInterval  () {
 
-       this.#googleSetIntervalId = setInterval(() => {
-            this.#moveGoogleToRandomPosition()
-        }, this.#settings.googleJumpInterval)
-        console.log("google jump interval")
-    }
-}
+     #RunGoogleJumpInterval() {
+         this.#googleSetIntervalId = setInterval(() => {
+             this.#google.position = this.#moveGoogleToRandomPosition();
+             this.eventEmitter.emit("unitChangePosition");
+         }, this.#settings.googleJumpInterval);
+
+     }
+
+ }
 
 
 class Unit {
@@ -220,7 +233,7 @@ class Position {
         this.y = obj.y
     }
     clone () {
-        return new Position(this.x,  this.y)
+        return new Position({x:this.x,  y:this.y})
     }
     equal (otherPosition) {
         return otherPosition.x === this.x && otherPosition.y === this.y
@@ -231,7 +244,7 @@ class Position {
             x = NumberUtil.getRandomNumber(maxX);
             y = NumberUtil.getRandomNumber(maxY);
         } while (coordinates.some((coord) => coord.x === x && coord.y === y));
-        return {x, y}
+        return new Position({ x, y })
     }
 }
 class NumberUtil {

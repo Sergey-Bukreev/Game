@@ -1,11 +1,13 @@
 const {Game} = require("./Game")
+const {EventEmitter} = require("./eventEmitter/EventEmitter");
 
 
 describe ("game test", ()=> {
    let game
+    let eventEmitter
     beforeEach(()=> {
-
-     game = new Game()
+        eventEmitter = new EventEmitter()
+     game = new Game(eventEmitter)
     })
     afterEach(async ()=>{
         await game.stop()
@@ -72,27 +74,25 @@ describe ("game test", ()=> {
     })
 
     test("Check Google position after change", async () => {
-
         game.settings = {
             gridSize:{
                 width:4,
                 height:4
             },
-            googleJumpInterval: 100
-        }
-        await game.start()
-        const prevPosition = game.google.position.clone()
+            googleJumpInterval: 2000
+        };
+        await game.start();
+        const prevPosition = game.google.position.clone();
 
-        await sleep(150)
+        await sleep(3000);
 
-        console.log(game.google.position)
-        // Проверкаа что позиции изменились
-        expect(game.google.position).not.toEqual(prevPosition)
+        console.log(game.google.position);
+        // Проверка, что позиции изменились
+        expect(game.google.position).not.toEqual(prevPosition);
         // Проверка нашего метода equal
-        expect(game.google.position.equal(prevPosition)).toBe(false)
+        expect(game.google.position.equal(prevPosition)).toBe(false);
+    });
 
-
-    })
 
     test("catch Google by player1 or player2 for one row", async () => {
         game.settings = {
@@ -100,11 +100,14 @@ describe ("game test", ()=> {
                 width: 4,
                 height:4
             },
-            pointsToWin: 3
+            pointsToWin: 2,
+            googleJumpInterval: 2000
+
         };
         await game.start();
 
         const prevPosition = game.google.position.clone();
+        await sleep(3000);
         const deltaForPlayer1 = game.google.position.x - game.player1.position.x;
         const deltaForPlayer2 = game.google.position.x - game.player2.position.x;
 
@@ -138,13 +141,16 @@ describe ("game test", ()=> {
     test("check player1 or player2 won", async () => {
         game.settings = {
             gridSize:{
-                width: 3,
-                height: 1
+                width: 4,
+                height: 4
             },
+            pointsToWin: 3,
+            googleJumpInterval: 2000
         };
         await game.start();
 
         const prevPosition = game.google.position.clone();
+        await sleep(3000);
         const deltaForPlayer1 = game.google.position.x - game.player1.position.x;
         const deltaForPlayer2 = game.google.position.x - game.player2.position.x;
 

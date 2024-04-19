@@ -27,3 +27,6 @@ export class EventEmitter {
         this.#subscribers[eventName] = this.#subscribers[eventName].filter(cb => callback !== cb)
     }
 }
+// module.exports ={
+//     EventEmitter
+// }
