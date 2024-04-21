@@ -21,8 +21,8 @@ constructor(eventEmitter) {
         this.eventEmitter = eventEmitter
 }
      #moveGoogleToRandomPosition(excludeGoogle) {
-         let notCrossedPosition = [this.player1.position, this.player2.position];
-         if (!excludeGoogle) {
+         let notCrossedPosition = [this.#player1.position, this.#player2.position];
+         if (!excludeGoogle ) {
              notCrossedPosition.push(this.#google.position);
          }
          const newPosition = Position.getNotCrossedPosition(
@@ -84,9 +84,9 @@ constructor(eventEmitter) {
     }
 
      #checkGoogleCatching(player) {
-         if(this.google.position.equal(player.position)) {
+         if(this.#google.position.equal(player.position)) {
              this.#score[player.playerId].points++;
-             if(this.score[player.playerId].points === this.#settings.pointsToWin) {
+             if(this.#score[player.playerId].points === this.#settings.pointsToWin) {
                  this.#finish();
                  this.#google.position = new Position({
                      x: this.#settings.gridSize.width + 1,
@@ -165,22 +165,22 @@ constructor(eventEmitter) {
             ? {...this.#settings.gridSize, ...newSettings.gridSize}
             : this.#settings.gridSize
     }
-    get settings () {
+    async getSettings () {
        return this.#settings
     }
-    get gameStatus () {
+    async getGameStatus () {
         return this.#gameStatus
     }
-    get player1 () {
+    async getPlayer1 () {
         return this.#player1
     }
-    get player2 () {
+    async getPlayer2 () {
         return this.#player2
     }
-    get google () {
+    async getGoogle () {
         return this.#google
     }
-    get score () {
+    async getScore () {
         return this.#score
     }
    async start () {
