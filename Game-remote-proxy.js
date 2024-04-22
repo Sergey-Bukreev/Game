@@ -7,34 +7,35 @@ export class GameRemoteProxy {
         this.eventEmitter = eventEmitter
         this.ws = null
 
+
     }
 
 
 
 
     movePlayer1Right () {
-
+        this.api.remoteProcedureCall("movePlayer1Right")
     }
     movePlayer1Left () {
-
+        this.api.remoteProcedureCall("movePlayer1Left")
     }
     movePlayer2Right () {
-
+        this.api.remoteProcedureCall("movePlayer2Right")
     }
     movePlayer2Left () {
-
+        this.api.remoteProcedureCall("movePlayer2Left")
     }
     movePlayer1Down () {
-
+        this.api.remoteProcedureCall("movePlayer1Down")
     }
     movePlayer1Up () {
-    this.ws.send("hello from front")
+        this.api.remoteProcedureCall("movePlayer1Up")
     }
     movePlayer2Down () {
-
+        this.api.remoteProcedureCall("movePlayer2Down")
     }
     movePlayer2Up () {
-
+        this.api.remoteProcedureCall("movePlayer2Up")
     }
 
 
@@ -43,27 +44,27 @@ export class GameRemoteProxy {
     }
    async getSettings () {
 
-     return   this.api.send("getSettings")
+     return   this.api.remoteProcedureCall("getSettings")
     }
    async getGameStatus () {
 
-      return  this.api.send("getGameStatus")
+      return  this.api.remoteProcedureCall("getGameStatus")
     }
    async getPlayer1 () {
 
-      return  this.api.send("getPlayer1")
+      return  this.api.remoteProcedureCall("getPlayer1")
     }
     async getPlayer2 () {
 
-      return   this.api.send("getPlayer2")
+      return   this.api.remoteProcedureCall("getPlayer2")
     }
     async getGoogle () {
 
-       return  this.api.send("getGoogle")
+       return  this.api.remoteProcedureCall("getGoogle")
     }
    async getScore () {
 
-      return  this.api.send("getScore")
+      return  this.api.remoteProcedureCall("getScore")
     }
     async start () {
         this.ws = new WebSocket("ws://localhost:8080")
@@ -105,7 +106,7 @@ class Api {
             // "procedureName" : [resolver]
         }
     }
-    send (procedureName) {
+    remoteProcedureCall (procedureName) {
         return new Promise((res)=> {
 
             this.ws.send(JSON.stringify({

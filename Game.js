@@ -5,7 +5,7 @@
             height:4
         },
         googleJumpInterval: 2000,
-        pointsToWin:3
+        pointsToWin:10
     }
     #gameStatus = "pending"
     #player1
@@ -89,8 +89,8 @@ constructor(eventEmitter) {
              if(this.#score[player.playerId].points === this.#settings.pointsToWin) {
                  this.#finish();
                  this.#google.position = new Position({
-                     x: this.#settings.gridSize.width + 1,
-                     y: this.#settings.gridSize.height + 1
+                     x: -1,
+                     y: -1
                  });
              } else {
                  let newPosition;

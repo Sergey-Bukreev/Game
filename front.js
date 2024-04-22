@@ -12,29 +12,23 @@ const asyncStart = async () => {
     const tableElement = document.querySelector("#grid")
     const scoreElement = document.querySelector("#score")
 
+    let renderCounter = 0
 
-    const render = async () => {
+    const render = async (counter) => {
         tableElement.innerHTML = ""
         scoreElement.innerHTML = ""
 
 
-        const   [score,
-                settings,
-                google,
-                player1,
-                player2
-                ] = await Promise.all([
-            game.getScore(),
-            game.getSettings(),
-            game.getGoogle(),
-            game.getPlayer1(),
-            game.getPlayer2()
-        ]);
-        // const score = await game.getScore()
-        // const settings = await  game.getSettings()
-        // const google = await game.getGoogle()
-        // const player1 = await game.getPlayer1()
-        // const player2 = await game.getPlayer2()
+        const score = await game.getScore()
+        if(counter < renderCounter) return
+        const settings = await  game.getSettings()
+        if(counter < renderCounter) return
+        const google = await game.getGoogle()
+        if(counter < renderCounter) return
+        const player1 = await game.getPlayer1()
+        if(counter < renderCounter) return
+        const player2 = await game.getPlayer2()
+        if(counter < renderCounter) return
 
 
         scoreElement.append(`player1:${score[1].points} - player2:${score[2].points}`)
@@ -109,11 +103,11 @@ const asyncStart = async () => {
     })
 
     game.eventEmitter.on("unitChangePosition", ()=> {
-
-        render()
+        renderCounter++
+        render(renderCounter)
     })
 
-    render()
+    render(renderCounter)
 
 }
 asyncStart()
